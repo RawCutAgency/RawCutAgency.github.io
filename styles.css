@@ -610,25 +610,27 @@ textarea:focus-visible {
   color: var(--text-color);
 }
 
-/* Grid — Dynamic Masonry (CSS Columns) */
+/* Grid — Left-to-Right Flow with Mixed Heights */
 .portfolio-grid {
   margin-top: 2.5rem;
-  column-count: 1; /* 1 column on mobile */
-  column-gap: 2px; /* Vertical seams */
+  display: grid;
+  grid-template-columns: 1fr; /* 1 column on mobile */
+  gap: 2px; /* Uniform seams */
   background: var(--text-color);
   border: 2px solid var(--text-color);
+  align-items: start; /* CRITICAL: Prevents 16:9 videos from stretching to match 9:16 videos */
   counter-reset: card-counter;
 }
 
 @media (min-width: 640px) {
   .portfolio-grid {
-    column-count: 2; /* 2 columns on tablets */
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
   }
 }
 
 @media (min-width: 1000px) {
   .portfolio-grid {
-    column-count: 3; /* 3 columns on desktop */
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on desktop */
   }
 }
 
@@ -636,8 +638,6 @@ textarea:focus-visible {
   background: var(--bg-color);
   counter-increment: card-counter;
   position: relative;
-  break-inside: avoid; /* Forces the card to stay in one piece */
-  margin-bottom: 2px; /* Horizontal seams */
   display: flex;
   flex-direction: column;
 }
