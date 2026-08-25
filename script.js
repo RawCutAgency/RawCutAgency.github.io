@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* -----------------------------------------------------------
-     2. Portfolio filtering
+     2. Portfolio filtering & Aggressive Unload
   ----------------------------------------------------------- */
   const filterButtons = document.querySelectorAll('.filter-btn');
   const portfolioCards = document.querySelectorAll('.portfolio-card');
@@ -72,9 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let visibleCount = 0;
 
     portfolioCards.forEach((card) => {
-      const matches = filterValue === 'all' || card.dataset.category === filterValue;
+      const matches = card.dataset.category === filterValue;
       card.hidden = !matches;
-      if (matches) visibleCount += 1;
+
+      const video = card.querySelector('video');
+      const source = video ? video.querySelector('source') : null;
+
+      if (matches) {
+        visibleCount += 1;
+      } else {
+        // AGGRESSIVE UNLOAD: Free up RAM when the category is hidden
+        if (source && source.hasAttribute('src') && !source.hasAttribute('data-src')) {
+          source.setAttribute('data-src', source.getAttribute('src')); // Move URL back to data-src
+          source.removeAttribute('src'); // Delete the active URL
+          video.load(); // Force the browser to dump the buffered video data from RAM
+        }
+      }
     });
 
     if (noResultsMsg) {
@@ -94,6 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
       applyFilter(button.dataset.filter);
     });
   });
+
+  // INITIALIZE: Run the filter immediately on page load for the default active tab
+  const defaultActiveBtn = document.querySelector('.filter-btn.is-active');
+  if (defaultActiveBtn) {
+    applyFilter(defaultActiveBtn.dataset.filter);
+  }
 
   /* -----------------------------------------------------------
      3. Footer year
@@ -204,4 +223,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     }
+
+  /* -----------------------------------------------------------
+     7. Video Lazy Loading & Scroll Optimization
+  ----------------------------------------------------------- */
+  const videoCards = document.querySelectorAll('.portfolio-card video, .bento-item video');
+
+  if ("IntersectionObserver" in window) {
+    const videoObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+
+        // If the video scrolls into view
+        if (entry.isIntersecting) {
+          const source = video.querySelector('source');
+
+          // Check if it has a data-src (meaning it hasn't been loaded yet)
+          if (source && source.hasAttribute('data-src')) {
+            source.src = source.getAttribute('data-src'); // Inject the real URL
+            source.removeAttribute('data-src'); // Clean up
+            video.load(); // Force the browser to grab the file
+          }
+
+          video.play().catch(e => {
+            // Catch autoplay restrictions if any
+            console.log("Autoplay prevented by browser.");
+          });
+        }
+        // If the video scrolls OUT of view
+        else {
+          if (!video.paused) {
+            video.pause(); // Pause to save RAM/CPU
+          }
+        }
+      });
+    }, {
+      rootMargin: "200px 0px" // Start loading 200px before it actually hits the screen
+    });
+
+    videoCards.forEach(video => {
+      videoObserver.observe(video);
+    });
+  }
 });
