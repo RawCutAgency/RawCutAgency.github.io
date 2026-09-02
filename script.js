@@ -62,57 +62,67 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* -----------------------------------------------------------
-     2. Portfolio filtering & Aggressive Unload
-  ----------------------------------------------------------- */
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  const portfolioCards = document.querySelectorAll('.portfolio-card');
-  const noResultsMsg = document.getElementById('noResults');
+       2. Portfolio filtering & URL Routing
+    ----------------------------------------------------------- */
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const portfolioCards = document.querySelectorAll('.portfolio-card');
+    const noResultsMsg = document.getElementById('noResults');
 
-  function applyFilter(filterValue) {
-    let visibleCount = 0;
+    function applyFilter(filterValue) {
+      let visibleCount = 0;
 
-    portfolioCards.forEach((card) => {
-      const matches = card.dataset.category === filterValue;
-      card.hidden = !matches;
+      portfolioCards.forEach((card) => {
+        const matches = card.dataset.category === filterValue;
+        card.hidden = !matches;
 
-      const video = card.querySelector('video');
-      const source = video ? video.querySelector('source') : null;
+        const video = card.querySelector('video');
+        const source = video ? video.querySelector('source') : null;
 
-      if (matches) {
-        visibleCount += 1;
-      } else {
-        // AGGRESSIVE UNLOAD: Free up RAM when the category is hidden
-        if (source && source.hasAttribute('src') && !source.hasAttribute('data-src')) {
-          source.setAttribute('data-src', source.getAttribute('src')); // Move URL back to data-src
-          source.removeAttribute('src'); // Delete the active URL
-          video.load(); // Force the browser to dump the buffered video data from RAM
+        if (matches) {
+          visibleCount += 1;
+        } else {
+          if (source && source.hasAttribute('src') && !source.hasAttribute('data-src')) {
+            source.setAttribute('data-src', source.getAttribute('src'));
+            source.removeAttribute('src');
+            video.load();
+          }
         }
+      });
+
+      if (noResultsMsg) {
+        noResultsMsg.hidden = visibleCount === 0;
       }
-    });
-
-    if (noResultsMsg) {
-      noResultsMsg.hidden = visibleCount !== 0;
     }
-  }
 
-  filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      // Update active state
-      filterButtons.forEach((btn) => btn.classList.remove('is-active'));
-      button.classList.add('is-active');
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach((btn) => btn.classList.remove('is-active'));
+        button.classList.add('is-active');
+        button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        applyFilter(button.dataset.filter);
 
-      // Keep the clicked button in view on the scrollable bar
-      button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-
-      applyFilter(button.dataset.filter);
+        // Update URL without reloading the page so it's linkable
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('filter', button.dataset.filter);
+        window.history.pushState({}, '', newUrl);
+      });
     });
-  });
 
-  // INITIALIZE: Run the filter immediately on page load for the default active tab
-  const defaultActiveBtn = document.querySelector('.filter-btn.is-active');
-  if (defaultActiveBtn) {
-    applyFilter(defaultActiveBtn.dataset.filter);
-  }
+    // INITIALIZE: Read URL param first, fallback to default active
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+    const defaultActiveBtn = document.querySelector('.filter-btn.is-active');
+
+    if (filterParam) {
+      const targetBtn = document.querySelector(`.filter-btn[data-filter="${filterParam}"]`);
+      if (targetBtn) {
+        targetBtn.click(); // Triggers the visual active state and applies filter
+      } else if (defaultActiveBtn) {
+        applyFilter(defaultActiveBtn.dataset.filter);
+      }
+    } else if (defaultActiveBtn) {
+      applyFilter(defaultActiveBtn.dataset.filter);
+    }
 
   /* -----------------------------------------------------------
      3. Footer year

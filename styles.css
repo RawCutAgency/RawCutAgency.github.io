@@ -1,5 +1,5 @@
 /* =============================================================
-   RAWCUT. — Brutalist Video Editing Portfolio
+   Madesign. — Brutalist Video Editing Portfolio
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -540,6 +540,22 @@ textarea:focus-visible {
   padding: clamp(3rem, 7vw, 5rem) 1.5rem;
 }
 
+/* New Split Layout Container */
+.portfolio-header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 1000px) {
+  .portfolio-header-container {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
 .section-heading h2 {
   font-size: clamp(2.2rem, 6vw, 3.2rem);
 }
@@ -550,20 +566,18 @@ textarea:focus-visible {
   font-size: 1rem;
 }
 
-/* Filter bar: horizontally scrollable, scrollbar hidden */
-.filter-bar-wrap {
-  margin-top: 2.2rem;
-  border-top: var(--border-thin) solid var(--text-color);
-  border-bottom: var(--border-thin) solid var(--text-color);
-}
-
+/* Filter bar (Lines Removed) */
 .filter-bar {
   display: flex;
   gap: 0.7rem;
   overflow-x: auto;
-  padding: 1.1rem 0;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge */
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
   /* NEW: Cursor and selection states for dragging */
   cursor: grab;
@@ -961,76 +975,72 @@ textarea:focus-visible {
 }
 
 /* -------------------------------------------------------------
-   11. Bento Video Showcase (Homepage)
+   11. Niche Selector (Homepage)
 ------------------------------------------------------------- */
-.bento-showcase {
-  /* Breaks out of the standard container to span much wider */
-  max-width: 1800px;
-  width: 92%; /* Keeps a consistent 4% margin on the left and right */
+.niche-selector {
+  /* Pushes past the standard container to make cards larger */
+  max-width: 1600px;
+  width: 92%;
   margin: 0 auto;
-  padding: clamp(3rem, 7vw, 5rem) 0;
+  padding: clamp(3rem, 7vw, 5rem) 0; /* Removed horizontal padding since width handles it */
 }
 
-.bento-grid {
+.niche-grid {
   display: grid;
-  grid-template-columns: 1fr; /* Stack on mobile */
-  gap: 2rem;
+  grid-template-columns: 1fr;
+  gap: 3rem; /* Slightly increased gap for breathing room on larger cards */
 }
 
-@media (min-width: 900px) {
-  .bento-grid {
-    grid-template-columns: repeat(5, 1fr);
-    /* Dynamic row height so boxes stay proportional when the screen gets really wide */
-    grid-auto-rows: clamp(240px, 18vw, 320px);
-    grid-auto-flow: dense;
+@media (min-width: 640px) {
+  .niche-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  /* Shape Modifiers for Desktop */
-  .bento-wide { grid-column: span 2; }
-  .bento-tall { grid-row: span 2; }
-  .bento-square { /* Defaults to spanning 1 column and 1 row */ }
 }
 
-.bento-item {
-  position: relative;
-  display: block;
-  background: var(--bg-alt);
-  /* Default white border for all items */
-  border: var(--border-thick) solid var(--text-color);
+@media (min-width: 1000px) {
+  .niche-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.niche-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color); /* Deep black */
+  border: var(--border-thick) solid var(--text-color); /* Keep brutalist outer border */
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  line-height: 0;
   overflow: hidden;
+  text-decoration: none;
 }
 
-/* On mobile, force a standard height so it doesn't get crazy long */
-@media (max-width: 899px) {
-  .bento-item { height: 300px; }
-}
-
-/* Hard Brutalist Shadows & Dynamic Borders */
-.bento-shadow-red {
+.niche-shadow-red {
   box-shadow: 8px 8px 0 0 var(--primary-accent);
-  border-color: var(--text-color); /* Keeps the white outline */
 }
 
-.bento-shadow-white {
+.niche-shadow-white {
   box-shadow: 8px 8px 0 0 var(--text-color);
-  border-color: var(--primary-accent); /* MAGIC: Changes the outline to red to contrast the white shadow */
 }
 
-/* Hover Physics */
-.bento-item:hover {
+.niche-card:hover {
   transform: translate(4px, 4px);
 }
-.bento-item.bento-shadow-red:hover {
+.niche-card.niche-shadow-red:hover {
   box-shadow: 4px 4px 0 0 var(--primary-accent);
 }
-.bento-item.bento-shadow-white:hover {
+.niche-card.niche-shadow-white:hover {
   box-shadow: 4px 4px 0 0 var(--text-color);
 }
 
-/* Video filling the box */
-.bento-item video {
+.niche-video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Enforces 16:9 ratio */
+  background: #000;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.niche-video-wrapper video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1039,26 +1049,31 @@ textarea:focus-visible {
   transition: filter 0.3s ease;
 }
 
-.bento-item:hover video {
+.niche-card:hover .niche-video-wrapper video {
   filter: grayscale(0%);
 }
 
-/* Bold Brutalist Tag */
-.bento-tag {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
+.niche-card-meta {
+  padding: 1rem;
+  /* Thin white line separating video from the black bottom area, just like the image */
+  border-top: 2px solid var(--text-color);
+  background: var(--bg-color);
+  display: flex;
+  align-items: center;
+}
+
+/* Red Tag in Niche Card */
+.niche-title {
+  display: inline-block;
   background: var(--primary-accent);
   color: var(--text-color);
-  padding: 0.4rem 0.8rem;
   font-family: var(--font-body);
   font-weight: 800;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
-  border: 2px solid var(--text-color);
-  line-height: 1;
-  z-index: 10;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.7rem;
+  line-height: 1.2;
 }
 
 /* -------------------------------------------------------------
