@@ -235,7 +235,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
   /* -----------------------------------------------------------
-     7. Video Lazy Loading & Scroll Optimization
+     7. Dynamic Masonry Grid Layout
+  ----------------------------------------------------------- */
+  function resizeMasonryItem(item) {
+    const grid = document.querySelector('.portfolio-grid');
+    if (!grid) return;
+
+    // Get the computed style of the grid to find the gap and auto-rows
+    const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-row-gap')) || parseInt(window.getComputedStyle(grid).getPropertyValue('gap')) || 2;
+    const rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows')) || 1;
+
+    // Calculate the natural height of the content
+    // The content is the video wrapper + the card meta
+    const wrapper = item.querySelector('.gif-wrapper');
+    const meta = item.querySelector('.card-meta');
+
+    if (wrapper && meta) {
+      // It's important to temporarily reset gridRowEnd to auto to measure natural height
+      item.style.gridRowEnd = 'auto';
+      const wrapperHeight = wrapper.getBoundingClientRect().height;
+      const metaHeight = meta.getBoundingClientRect().height;
+      const totalHeight = wrapperHeight + metaHeight;
+
+      const rowSpan = Math.ceil((totalHeight + rowGap) / (rowHeight + rowGap));
+      item.style.gridRowEnd = 'span ' + rowSpan;
+    }
+  }
+
+  function resizeAllMasonryItems() {
+    const allItems = document.querySelectorAll('.portfolio-card');
+    allItems.forEach(resizeMasonryItem);
+  }
+
+  // Initial layout
+  resizeAllMasonryItems();
+
+  // Watch for resizes
+  window.addEventListener('resize', resizeAllMasonryItems);
+
+  // Also need to run this when videos load their metadata so they have a height
+  const allVideos = document.querySelectorAll('.portfolio-card video');
+  allVideos.forEach(video => {
+    video.addEventListener('loadedmetadata', () => {
+      const card = video.closest('.portfolio-card');
+      if (card) {
+        resizeMasonryItem(card);
+      }
+    });
+  });
+
+  // Watch for image loads if any
+  const allImages = document.querySelectorAll('.portfolio-card img');
+  allImages.forEach(img => {
+    img.addEventListener('load', () => {
+      const card = img.closest('.portfolio-card');
+      if (card) {
+        resizeMasonryItem(card);
+      }
+    });
+  });
+
+  // Use a ResizeObserver as a catch-all to keep things tight if heights shift
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver((entries) => {
+      // Just re-run on everything to be safe when the grid or cards change size
+      resizeAllMasonryItems();
+    });
+    const gridEl = document.querySelector('.portfolio-grid');
+    if (gridEl) {
+      ro.observe(gridEl);
+    }
+  }
+
+  /* -----------------------------------------------------------
+     8. Video Lazy Loading & Scroll Optimization
   ----------------------------------------------------------- */
   const videoCards = document.querySelectorAll('.portfolio-card video, .bento-item video');
 
