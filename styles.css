@@ -632,7 +632,8 @@ textarea:focus-visible {
   gap: 2px; /* Uniform seams */
   background: var(--text-color);
   border: 2px solid var(--text-color);
-  align-items: start; /* CRITICAL: Prevents 16:9 videos from stretching to match 9:16 videos */
+  align-items: stretch;
+  grid-auto-rows: 1px;
   counter-reset: card-counter;
 }
 
@@ -654,6 +655,7 @@ textarea:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .portfolio-card[hidden] {
